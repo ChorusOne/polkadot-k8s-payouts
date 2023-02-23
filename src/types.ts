@@ -17,6 +17,7 @@ export interface ClaimerInputConfig {
       enabled: boolean;
       gracePeriod: GracePeriod;
       batchSize: number;
+      txWaitTimeMs: number;
       claimerKeystore: Keystore;
     };
     targetsFromGit?: {
