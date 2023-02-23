@@ -5,12 +5,13 @@ import { ApiPromise } from '@polkadot/api';
 import { KeyringPair } from '@polkadot/keyring/types';
 import waitUntil from 'async-wait-until';
 import { BN } from 'bn.js';
-import { batchSize, gracePeriod, isDeepCheckEnabled } from './constants';
+import { batchSize, gracePeriod, isDeepCheckEnabled, txWaitTimeMs } from './constants';
 
 export class Claimer {
     private isDeepCheckEnabled = isDeepCheckEnabled
     private gracePeriod: GracePeriod = gracePeriod;
     private batchSize: number = batchSize;
+    private txWaitTimeMs: number = txWaitTimeMs;
     private targets: Set<Target> = new Set<Target>();
     private readonly logger: Logger = LoggerSingleton.getInstance()
     private currentEraIndex: number;
@@ -23,6 +24,7 @@ export class Claimer {
         this.isDeepCheckEnabled = cfg.deepCheck.enabled
         this.gracePeriod = cfg.claim.gracePeriod
         this.batchSize = cfg.claim.batchSize
+        this.txWaitTimeMs = cfg.claim.txWaitTimeMs;
     }
 
     async run(): Promise<void> {
@@ -187,7 +189,7 @@ export class Claimer {
               this.logger.error(`Could not perform one of the claims: ${e}`);
           }
           try {
-              await waitUntil(() => currentTxDone, 60000, 500);
+              await waitUntil(() => currentTxDone, this.txWaitTimeMs, 500);
               claimPool.splice(0,candidates.length)
               for (const candidate of candidates) {
                 validatorsMap.get(candidate.address).claimedPayouts.push(candidate.eraIndex)
